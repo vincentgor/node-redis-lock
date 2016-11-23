@@ -1,0 +1,24 @@
+{
+  "name": "redis-lock-one",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vincentgor/node-redis-lock.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vincentgor/node-redis-lock/issues"
+  },
+  "homepage": "https://github.com/vincentgor/node-redis-lock#readme",
+  "devDependencies": {
+    "debug": "^2.3.3",
+    "ioredis": "^2.4.0",
+    "redis": "^2.6.3"
+  }
+}
