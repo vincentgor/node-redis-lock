@@ -11,7 +11,8 @@ module.exports.createInstance = function (client, options) {
     return new RedisLock(client, options);
 };
 
-const debug = require('debug')('index');
+// const debug = require('debug')('index');
+const debug = console.log;
 
 /**
  * ### reids 锁对象
@@ -28,12 +29,33 @@ function RedisLock(client, options) {
  */
 function init (client, options) {
 
-    this.client = client;
+    if (options && Object.prototype.toString.call(options) !== '[object Object]') {
+        return new Error('options params must be an object');
+    }
 
+    options = options || {};
+
+    let type = Object.prototype.toString.call(options.log);
+
+    if (type === '[object Boolean]') {
+        this.log = options.log ? debug : noLog;
+    } else if (type === '[object Function]') {
+        this.log = options.log;
+    } else {
+        return new Error('options params must be an object');
+    }
+
+    this.client = client;
     this.key = options.key || ('redis_lock_key:' + Date.now());
     this.ttl = options.ttl;
 
-    debug('init success');
+    this.log('init success');
+
+    /**
+     * ### reids 锁对象
+     */
+    function noLog () {}
+
 };
 
 /**
@@ -72,10 +94,11 @@ function del (callback) {
 
     this.client.get(this.key, (err, res) => {
         if (res == this.value) {
-            debug('清理ing');
+            this.log('deling', res);
             this.client.del(this.key, callback);
         } else {
-            callback(null, '无需清理');
+            this.log('no need to be deled');
+            callback(null, 'no need to be deled');
         }
     });
 

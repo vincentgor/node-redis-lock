@@ -5,14 +5,17 @@
 'use strict';
 
 const redis = require('redis');
-const debug = require('debug')('index');
+// const debug = require('debug')('index');
+
+const debug = function () {}
 
 let client = redis.createClient();
 
 const RedisLock = require('./index');
 
 let options = {
-    ttl: 100000
+    ttl: 100000,
+    log: true
 };
 
 const instance = RedisLock.createInstance(client, options);
