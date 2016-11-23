@@ -5,7 +5,7 @@
 'use strict';
 
 /**
- * ### instance
+ * ### get an instance from factory
  */
 module.exports.createInstance = function (client, options) {
     return new RedisLock(client, options);
@@ -15,7 +15,7 @@ module.exports.createInstance = function (client, options) {
 const debug = console.log;
 
 /**
- * ### reids 锁对象
+ * ### reids object
  */
 function RedisLock(client, options) {
     if (!(this instanceof RedisLock)) {
@@ -25,7 +25,10 @@ function RedisLock(client, options) {
 }
 
 /**
- * ### 初始化
+ * ### init the lock
+ * options.key       - the key of lock
+ * options.ttl       - the expire time of the key
+ * options.log       - true, false, or a log function
  */
 function init (client, options) {
 
@@ -50,16 +53,15 @@ function init (client, options) {
     this.ttl = options.ttl;
 
     this.log('init success');
-
-    /**
-     * ### reids 锁对象
-     */
-    function noLog () {}
-
 };
 
 /**
- * ### 抢购 若返回0则表示抢不到， 返回1则表示抢购成功
+ * ### log nothing
+ */
+function noLog () {}
+
+/**
+ * ### return true if get the lock, false otherwise
  */
 RedisLock.prototype.lock = function (callback) {
 
@@ -80,7 +82,7 @@ RedisLock.prototype.lock = function (callback) {
         let delOperator = null;
         if (res) {
             this.value = value;
-            delOperator = del.bind(this);
+            delOperator = release.bind(this);
         }
         callback(err, !!res, delOperator);
     }
@@ -88,9 +90,9 @@ RedisLock.prototype.lock = function (callback) {
 };
 
 /**
- * ### 删除抢购的key
+ * ### release the lock
  */
-function del (callback) {
+function release (callback) {
 
     this.client.get(this.key, (err, res) => {
         if (res == this.value) {

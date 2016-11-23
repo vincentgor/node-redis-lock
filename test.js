@@ -5,9 +5,9 @@
 'use strict';
 
 const redis = require('redis');
-// const debug = require('debug')('index');
+const debug = require('debug')('index');
 
-const debug = function () {}
+// const debug = function () {}
 
 let client = redis.createClient();
 
@@ -15,20 +15,20 @@ const RedisLock = require('./index');
 
 let options = {
     ttl: 100000,
-    log: true
+    log: debug
 };
 
 const instance = RedisLock.createInstance(client, options);
 
 for (let i = 0; i < 100; i++) {
-    instance.lock((err, res, del) => {
+    instance.lock((err, res, release) => {
         if (err) {
             debug('err', err);
             return;
         }
         if (!!res) {
             debug('抢购成功');
-            del((err, res) => {
+            release((err, res) => {
                 debug('清理结果:', res);
             });
         } else {
