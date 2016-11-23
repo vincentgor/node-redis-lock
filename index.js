@@ -31,9 +31,7 @@ function init (client, options) {
     this.client = client;
 
     this.key = options.key || ('redis_lock_key:' + Date.now());
-    this.value = options.value || 'redis_lock_value';
     this.ttl = options.ttl;
-    this.oldValue = this.value;
 
     debug('init success');
 };
@@ -41,11 +39,11 @@ function init (client, options) {
 /**
  * ### 抢购 若返回0则表示抢不到， 返回1则表示抢购成功
  */
-RedisLock.prototype.rob = function (options, callback) {
+RedisLock.prototype.lock = function (callback) {
 
-    let key = options.key || this.key;
-    let value = (options.value || this.value) + ':' + Date.now();
-    let ttl = options.ttl || this.ttl;
+    let key = this.key;
+    let value = Date.now();
+    let ttl = this.ttl;
 
     if (ttl) {
         this.client.set(key, value, 'NX', 'PX', ttl, cb.bind(this));
@@ -54,10 +52,15 @@ RedisLock.prototype.rob = function (options, callback) {
     }
 
     function cb(err, res) {
-        if (res) {
-            this.oldValue = value;
+        if (err) {
+            return callback(err);
         }
-        callback(err, res)
+        let delOperator = null;
+        if (res) {
+            this.value = value;
+            delOperator = del.bind(this);
+        }
+        callback(err, !!res, delOperator);
     }
 
 };
@@ -65,11 +68,11 @@ RedisLock.prototype.rob = function (options, callback) {
 /**
  * ### 删除抢购的key
  */
-RedisLock.prototype.del = function (callback) {
+function del (callback) {
 
     this.client.get(this.key, (err, res) => {
-        if (res == this.oldValue) {
-            debug('清理');
+        if (res == this.value) {
+            debug('清理ing');
             this.client.del(this.key, callback);
         } else {
             callback(null, '无需清理');
